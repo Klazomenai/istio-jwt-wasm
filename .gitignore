@@ -1,0 +1,22 @@
+# WASM build artifacts
+*.wasm
+
+# Go
+vendor/
+go.work
+go.work.sum
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Test artifacts
+token.json
+token.txt
+
+# OS
+.DS_Store
+Thumbs.db

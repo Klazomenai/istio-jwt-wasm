@@ -1,0 +1,129 @@
+name: Bug Report
+description: Report a bug or unexpected behavior
+title: "[Bug]: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report a bug! Please fill out the form below.
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Bug Description
+      description: A clear and concise description of the bug
+      placeholder: What happened?
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected Behavior
+      description: What did you expect to happen?
+      placeholder: What should have happened?
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Steps to Reproduce
+      description: How can we reproduce this bug?
+      placeholder: |
+        1. Deploy WasmPlugin with config...
+        2. Send request with JWT...
+        3. See error...
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      description: What version of istio-jwt-wasm are you using?
+      placeholder: v0.0.1-alpha
+    validations:
+      required: true
+
+  - type: input
+    id: istio-version
+    attributes:
+      label: Istio Version
+      description: What version of Istio? (run `istioctl version`)
+      placeholder: 1.18.0
+    validations:
+      required: true
+
+  - type: input
+    id: go-version
+    attributes:
+      label: Go Version (if building from source)
+      description: What version of Go? (run `go version`)
+      placeholder: go1.24.0
+
+  - type: dropdown
+    id: deployment
+    attributes:
+      label: Deployment Method
+      description: How did you deploy the WASM plugin?
+      options:
+        - OCI Registry (WasmPlugin url)
+        - Built from source
+        - Other
+    validations:
+      required: true
+
+  - type: input
+    id: kubernetes
+    attributes:
+      label: Kubernetes Version
+      description: What version of Kubernetes? (run `kubectl version`)
+      placeholder: v1.28.0
+    validations:
+      required: true
+
+  - type: textarea
+    id: config
+    attributes:
+      label: WasmPlugin Configuration
+      description: Please share your WasmPlugin CRD configuration (remove sensitive data)
+      render: yaml
+      placeholder: |
+        apiVersion: extensions.istio.io/v1alpha1
+        kind: WasmPlugin
+        metadata:
+          name: jwt-revocation
+        spec:
+          ...
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant Log Output
+      description: Please copy and paste relevant logs from Envoy/Istio Gateway
+      render: shell
+      placeholder: |
+        kubectl logs -n istio-system <gateway-pod> -c istio-proxy
+
+  - type: textarea
+    id: additional
+    attributes:
+      label: Additional Context
+      description: Add any other context about the problem here
+      placeholder: Authorization service logs, network policies, etc.
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Checklist
+      options:
+        - label: I have searched existing issues to avoid duplicates
+          required: true
+        - label: I have included all requested information above
+          required: true
+        - label: This is not a security vulnerability (those should be reported privately)
+          required: true
+        - label: I have checked Envoy/Gateway logs for detailed error messages
+          required: true

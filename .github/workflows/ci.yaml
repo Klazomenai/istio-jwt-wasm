@@ -1,0 +1,38 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build:
+    name: Build WASM
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.24'
+
+      - name: Download dependencies
+        run: make deps
+
+      - name: Build WASM module
+        run: make build
+
+      - name: Verify WASM module
+        run: |
+          ls -lh autonity-jwt-revocation.wasm
+          file autonity-jwt-revocation.wasm || true
+
+      - name: Upload WASM artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: wasm-module
+          path: autonity-jwt-revocation.wasm
+          retention-days: 7
