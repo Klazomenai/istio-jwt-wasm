@@ -18,9 +18,10 @@ func init() {
 
 // Configuration loaded from WasmPlugin pluginConfig
 type pluginConfig struct {
-	Cluster      string `json:"cluster"`       // Envoy cluster name for jwt-token-service
-	AuthorizeURL string `json:"authorizeUrl"`  // Path to authorize endpoint (e.g., "/authorize")
-	Timeout      uint32 `json:"timeout"`       // HTTP call timeout in milliseconds
+	Cluster      string   `json:"cluster"`       // Envoy cluster name for jwt-token-service
+	AuthorizeURL string   `json:"authorizeUrl"`  // Path to authorize endpoint (e.g., "/authorize")
+	Timeout      uint32   `json:"timeout"`       // HTTP call timeout in milliseconds
+	BypassPaths  []string `json:"bypassPaths"`   // Paths that bypass JWT validation (e.g., ACME challenges)
 }
 
 type vmContext struct {
@@ -51,6 +52,7 @@ func (ctx *pluginContext) OnPluginStart(pluginConfigurationSize int) types.OnPlu
 		Cluster:      "",
 		AuthorizeURL: "/authorize",
 		Timeout:      2000, // 2 seconds
+		BypassPaths:  []string{"/.well-known/acme-challenge/"}, // Default: allow ACME challenges
 	}
 
 	// Parse JSON config if provided
@@ -61,6 +63,12 @@ func (ctx *pluginContext) OnPluginStart(pluginConfigurationSize int) types.OnPlu
 		}
 	}
 
+	// If bypassPaths not configured, use default
+	if len(config.BypassPaths) == 0 {
+		config.BypassPaths = []string{"/.well-known/acme-challenge/"}
+		proxywasm.LogInfo("Using default bypassPaths: [\"/.well-known/acme-challenge/\"]")
+	}
+
 	// Validate required configuration
 	if config.Cluster == "" {
 		proxywasm.LogCritical("cluster is required in pluginConfig")
@@ -69,8 +77,8 @@ func (ctx *pluginContext) OnPluginStart(pluginConfigurationSize int) types.OnPlu
 
 	ctx.config = config
 
-	proxywasm.LogInfof("✅ Plugin started with config: cluster=%s, authorizeUrl=%s, timeout=%dms",
-		config.Cluster, config.AuthorizeURL, config.Timeout)
+	proxywasm.LogInfof("✅ Plugin started with config: cluster=%s, authorizeUrl=%s, timeout=%dms, bypassPaths=%v",
+		config.Cluster, config.AuthorizeURL, config.Timeout, config.BypassPaths)
 
 	return types.OnPluginStartStatusOK
 }
@@ -91,6 +99,18 @@ type httpContext struct {
 }
 
 func (ctx *httpContext) OnHttpRequestHeaders(numHeaders int, endOfStream bool) types.Action {
+	// 0. Check if path should bypass JWT validation
+	path, err := proxywasm.GetHttpRequestHeader(":path")
+	if err == nil {
+		// Check against configured bypass paths
+		for _, bypassPath := range ctx.config.BypassPaths {
+			if strings.HasPrefix(path, bypassPath) {
+				proxywasm.LogInfof("⏭️  Bypassing JWT validation for path: %s (matches: %s)", path, bypassPath)
+				return types.ActionContinue
+			}
+		}
+	}
+
 	// 1. Extract Authorization header
 	authHeader, err := proxywasm.GetHttpRequestHeader("Authorization")
 	if err != nil {

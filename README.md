@@ -111,6 +111,7 @@ The plugin is configured via the `pluginConfig` section of the Istio WasmPlugin 
 |-------|---------|-------------|
 | `authorizeUrl` | `/authorize` | Authorization endpoint path |
 | `timeout` | `2000` | HTTP call timeout in milliseconds |
+| `bypassPaths` | `["/.well-known/acme-challenge/"]` | Array of path prefixes that bypass JWT validation |
 
 ### Cluster Name Format
 
@@ -154,6 +155,19 @@ pluginConfig:
   authorizeUrl: "/authorize"
   timeout: 3000
 ```
+
+#### ACME Certificate Renewal (Bypass Paths)
+
+```yaml
+pluginConfig:
+  cluster: "outbound|8080||jwt-auth-service.default.svc.cluster.local"
+  bypassPaths:
+    - "/.well-known/acme-challenge/"  # Allow ACME HTTP-01 challenges
+    - "/health"                        # Allow health checks
+    - "/metrics"                       # Allow metrics scraping
+```
+
+**Note**: Paths in `bypassPaths` will skip JWT validation entirely. Use with caution and only for paths that should be publicly accessible.
 
 ## How It Works
 

@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- Configurable `bypassPaths` in WasmPlugin CRD to allow specific paths to skip JWT validation [#1](https://github.com/Klazomenai/istio-jwt-wasm/issues/1)
+- Default bypass for `/.well-known/acme-challenge/` paths to support ACME certificate renewal
+- Path-based exemption logging with emoji indicators for visibility
+
 ### Known Issues
 - No circuit breaker pattern for authorization service failures
 - No fallback or retry logic for failed authorization calls
